@@ -312,10 +312,71 @@ function App() {
                 </svg>
               </span>
             </div>
-            <div className="header-cell">Price</div>
-            <div className="header-cell">In Stock</div>
-            <div className="header-cell">Unit</div>
-            <div className="header-cell"></div>
+            <div 
+              className={`header-cell sortable ${getSortClass('price')}`}
+              onClick={() => handleSort('price')}
+            >
+              <span>Price</span>
+              <span className="sort-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </span>
+            </div>
+            <div 
+              className={`header-cell sortable ${getSortClass('inStock')}`}
+              onClick={() => handleSort('inStock')}
+            >
+              <span>In Stock</span>
+              <span className="sort-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </span>
+            </div>
+            <div 
+              className={`header-cell sortable ${getSortClass('unit')}`}
+              onClick={() => handleSort('unit')}
+            >
+              <span>Unit</span>
+              <span className="sort-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </span>
+            </div>
+            <div className="header-cell">
+              <span></span>
+            </div>
+          </div>
+
+          {/* Mobile Table Structure */}
+          <div className="table-header mobile-table">
+            <div 
+              className={`header-cell sortable ${getSortClass('productName')}`}
+              onClick={() => handleSort('productName')}
+            >
+              <span>Product/Service</span>
+              <span className="sort-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </span>
+            </div>
+            <div 
+              className={`header-cell sortable ${getSortClass('price')}`}
+              onClick={() => handleSort('price')}
+            >
+              <span>Price</span>
+              <span className="sort-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </span>
+            </div>
+            <div className="header-cell">
+              <span></span>
+            </div>
           </div>
           
           <div className="table-body">
@@ -344,7 +405,7 @@ function App() {
               </div>
             </div>
             
-            {/* Tablet/Mobile Table Row */}
+            {/* Tablet Table Row */}
             <div className="table-row tablet-table">
               <div className="table-cell">
                 <div className="cell-content">1234567890</div>
@@ -360,6 +421,25 @@ function App() {
               </div>
               <div className="table-cell">
                 <div className="cell-content">kilometers/hour</div>
+              </div>
+              <div className="table-cell actions">
+                <div className="cell-content">
+                  <div className="three-dots">
+                    <span className="dot"></span>
+                    <span className="dot"></span>
+                    <span className="dot"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Table Row */}
+            <div className="table-row mobile-table">
+              <div className="table-cell">
+                <div className="cell-content">This is a test product with fifty characters this!</div>
+              </div>
+              <div className="table-cell">
+                <div className="cell-content">1500800</div>
               </div>
               <div className="table-cell actions">
                 <div className="cell-content">
