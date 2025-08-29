@@ -363,11 +363,11 @@ function App() {
               </div>
               <div className="table-cell actions">
                 <div className="cell-content">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="#2563eb" stroke="none">
-                    <circle cx="12" cy="12" r="3"/>
-                    <circle cx="19" cy="12" r="3"/>
-                    <circle cx="5" cy="12" r="3"/>
-                  </svg>
+                  <div className="three-dots">
+                    <span className="dot"></span>
+                    <span className="dot"></span>
+                    <span className="dot"></span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -500,18 +500,32 @@ body {
   justify-content: center;
   align-items: center;
   background-color: transparent;
-  padding: 0.5rem;
-  min-height: 40px;
+  padding: 0.75rem;
+  min-height: 48px;
+  width: 100%;
 }
 
-.table-cell.actions .cell-content svg {
-  color: #2563eb;
+.three-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: color 0.2s;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
-.table-cell.actions .cell-content svg:hover {
-  color: #1d4ed8;
+.three-dots:hover {
+  background-color: #f3f4f6;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background-color: #2563eb;
+  border-radius: 50%;
+  display: block;
 }
 
 .row-actions {
