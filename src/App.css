@@ -338,12 +338,12 @@ body {
 }
 
 .action-btn.new-product {
-  background-color: #2563eb;
+  background-color: #10b981;
   color: white;
 }
 
 .action-btn.new-product:hover {
-  background-color: #1d4ed8;
+  background-color: #059669;
 }
 
 .action-btn.print-list {
