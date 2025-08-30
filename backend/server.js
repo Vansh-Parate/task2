@@ -1,42 +1,49 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import process from 'process';
 import { connectDB } from './config/database.js';
 import { seedProducts } from './seeders/seedData.js';
 import productRoutes from './routes/products.js';
 
+
+// Initialize Fastify instance
 const fastify = Fastify({
   logger: true
 });
 
-// Register CORS
+// Configure CORS
 await fastify.register(cors, {
   origin: true,
   credentials: true
 });
 
-// Register routes
+// Register API routes
 await fastify.register(productRoutes);
 
 // Health check endpoint
-fastify.get('/health', async (request, reply) => {
-  return { status: 'OK', timestamp: new Date().toISOString() };
+fastify.get('/health', async () => {
+  return { 
+    status: 'OK', 
+    timestamp: new Date().toISOString() 
+  };
 });
 
-// Start server
+// Server startup function
 const start = async () => {
   try {
-    // Connect to database
+    // Initialize database connection
     await connectDB();
     
-    // Seed products
+    // Seed initial data if needed
     await seedProducts();
     
-    // Start server
+    // Start HTTP server
     const port = process.env.PORT || 3001;
     await fastify.listen({ port, host: '0.0.0.0' });
-    console.log(`Server is running on port ${port}`);
+    
+    console.log(`✅ Server running on port ${port}`);
   } catch (err) {
-    fastify.log.error(err);
+    fastify.log.error('Server startup failed:', err);
     process.exit(1);
   }
 };

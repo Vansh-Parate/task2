@@ -12,14 +12,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f5f5f5;
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100vh;
 }
 
 .app {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* Header */
@@ -31,7 +32,11 @@ body {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1001;
 }
 
 .header-left {
@@ -225,8 +230,9 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   margin-left: 240px;
+  margin-top: 100px;
   width: calc(100vw - 260px);
-  overflow-x: hidden;
+  overflow: hidden;
   position: relative;
 }
 
@@ -366,6 +372,7 @@ body {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .table-header {
@@ -373,6 +380,9 @@ body {
   background-color: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
   min-width: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .table-header.desktop-table {
@@ -381,12 +391,12 @@ body {
 
 .table-header.tablet-table {
   display: none;
-  grid-template-columns: 1fr 2fr 1fr 1fr 1fr 40px;
+  grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
 }
 
 .table-header.mobile-table {
   display: none;
-  grid-template-columns: 1fr 1fr 40px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .header-cell {
@@ -439,6 +449,14 @@ body {
   max-height: 60vh;
   overflow-y: auto;
   overflow-x: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scroll-behavior: smooth;
+  position: relative;
+}
+
+.table-body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 .table-row {
@@ -454,12 +472,12 @@ body {
 
 .table-row.tablet-table {
   display: none;
-  grid-template-columns: 1fr 2fr 1fr 1fr 1fr 40px;
+  grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
 }
 
 .table-row.mobile-table {
   display: none;
-  grid-template-columns: 1fr 1fr 40px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .table-row:hover {
@@ -480,11 +498,26 @@ body {
   font-size: 0.875rem;
   color: #374151;
   width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: 100%;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  scroll-behavior: smooth;
 }
+
+.cell-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+.cell-content:hover {
+  overflow-x: auto;
+  background-color: #e5e7eb;
+}
+
+/* Removed gradient indicator to prevent white marks during scrolling */
 
 .table-cell input {
   width: 100%;
@@ -515,28 +548,7 @@ body {
   width: 100%;
 }
 
-.three-dots {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.three-dots:hover {
-  background-color: #f3f4f6;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  background-color: #2563eb;
-  border-radius: 50%;
-  display: block;
-}
+/* Three dots removed */
 
 .row-actions {
   display: flex;
@@ -561,22 +573,7 @@ body {
   gap: 0.5rem;
 }
 
-.save-btn, .cancel-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.save-btn:hover {
-  background-color: #dcfce7;
-}
-
-.cancel-btn:hover {
-  background-color: #fee2e2;
-}
+/* Save/Cancel buttons removed as they're not needed */
 
 /* Loading */
 .loading {
@@ -609,6 +606,7 @@ body {
   
   .main-content {
     margin-left: 1rem;
+    margin-top: 100px;
     width: calc(100vw - 2rem);
   }
   
@@ -685,6 +683,7 @@ body {
   
   .main-content {
     margin: 0.5rem;
+    margin-top: 100px;
     width: calc(100vw - 1rem);
     padding: 1rem;
   }
@@ -763,6 +762,7 @@ body {
   
   .main-content {
     margin: 0.25rem;
+    margin-top: 100px;
     width: calc(100vw - 0.5rem);
     padding: 1rem;
   }
@@ -801,6 +801,7 @@ body {
   
   .main-content {
     margin-left: 1rem;
+    margin-top: 100px;
     width: calc(100vw - 2rem);
   }
   
@@ -854,4 +855,92 @@ body {
     display: grid;
     grid-template-columns: 2fr 1fr 40px;
   }
+}
+
+/* Editable cell styles */
+.table-cell input,
+.table-cell textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  background-color: #f3f4f6;
+  outline: none;
+  color: #374151;
+  transition: background-color 0.2s ease;
+}
+
+.table-cell input:focus,
+.table-cell textarea:focus {
+  background-color: #e5e7eb;
+  box-shadow: inset 0 0 0 2px #2563eb;
+}
+
+.table-cell textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.table-cell span {
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+.table-cell span:hover {
+  background-color: #e5e7eb;
+}
+
+/* Enter key feedback animation */
+@keyframes enterFeedback {
+  0% {
+    background-color: #f3f4f6;
+    transform: scale(1);
+  }
+  50% {
+    background-color: #10b981;
+    transform: scale(1.02);
+  }
+  100% {
+    background-color: #f3f4f6;
+    transform: scale(1);
+  }
+}
+
+.enter-feedback {
+  animation: enterFeedback 0.2s ease-in-out;
+}
+
+/* Action buttons - removed save/delete buttons as they're not needed */
+
+/* Loading and error states */
+.table-body p {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: #6c757d;
+}
+
+.table-body p[style*="color: red"] {
+  color: #dc3545 !important;
+  font-weight: 500;
+}
+
+/* Empty state */
+.table-body:empty::after {
+  content: "No products found. Click 'New Product' to add one.";
+  display: block;
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+  font-style: italic;
 }

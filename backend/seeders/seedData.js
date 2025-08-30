@@ -1,14 +1,16 @@
 import Product from '../models/Product.js';
 
+// Seed products data
 export const seedProducts = async () => {
   try {
-    // Check if products already exist
+    // Check if products already exist to avoid duplicates
     const existingProducts = await Product.count();
     if (existingProducts > 0) {
       console.log('Products already seeded, skipping...');
       return;
     }
 
+    // Sample product data
     const products = [
       {
         articleNo: '1234567890',
@@ -210,9 +212,10 @@ export const seedProducts = async () => {
       }
     ];
 
+    // Create products in database
     await Product.bulkCreate(products);
-    console.log('Products seeded successfully!');
+    console.log('✅ Products seeded successfully!');
   } catch (error) {
-    console.error('Error seeding products:', error);
+    console.error('❌ Error seeding products:', error.message);
   }
 };

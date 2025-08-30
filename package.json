@@ -1,8 +1,9 @@
 {
-  "name": "task2",
+  "name": "pricelist-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Frontend React application for product price list management",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

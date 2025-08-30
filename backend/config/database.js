@@ -7,9 +7,10 @@ import process from 'process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load environment variables
 dotenv.config({ path: path.join(__dirname, '../config.env') });
 
-// Check if DATABASE_URL is provided
+// Validate required environment variables
 if (!process.env.DATABASE_URL) {
   console.error('❌ DATABASE_URL is not set in config.env');
   console.error('Please add your Neon DB connection string to backend/config.env:');
@@ -17,6 +18,7 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
+// Initialize Sequelize instance
 export const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'postgres',
   dialectOptions: {
@@ -34,16 +36,18 @@ export const sequelize = new Sequelize(process.env.DATABASE_URL, {
   }
 });
 
+// Database connection function
 export const connectDB = async () => {
   try {
+    // Test database connection
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
     
-    // Sync all models
+    // Sync database models
     await sequelize.sync({ force: false });
     console.log('✅ Database models synchronized.');
   } catch (error) {
-    console.error('❌ Unable to connect to the database:', error.message);
+    console.error('❌ Database connection failed:', error.message);
     console.error('Please check your DATABASE_URL in backend/config.env');
     process.exit(1);
   }

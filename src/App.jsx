@@ -1,10 +1,177 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
 function App() {
+  // State management
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [editingCell, setEditingCell] = useState(null);
+  const [enterKeyPressed, setEnterKeyPressed] = useState(false);
+  const [searchArticleNo, setSearchArticleNo] = useState('');
+  const [searchProductName, setSearchProductName] = useState('');
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+
+  // API functions
+  const fetchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/products`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setProducts(result.data);
+      } else {
+        setError(result.error || 'Failed to fetch products');
+      }
+    } catch {
+      setError('Failed to connect to server');
+    } finally {
+      setLoading(false);
+    }
+  }, [API_BASE_URL]);
+
+  const searchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (searchArticleNo) params.append('articleNo', searchArticleNo);
+      if (searchProductName) params.append('productName', searchProductName);
+      
+      const response = await fetch(`${API_BASE_URL}/products/search?${params}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setProducts(result.data);
+      } else {
+        setError(result.error || 'Failed to search products');
+      }
+    } catch {
+      setError('Failed to search products');
+    } finally {
+      setLoading(false);
+    }
+  }, [API_BASE_URL, searchArticleNo, searchProductName]);
+
+  const updateProduct = async (id, field, value) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [field]: value }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setProducts(prevProducts => 
+          prevProducts.map(product => 
+            product.id === id ? { ...product, [field]: value } : product
+          )
+        );
+        return true;
+      } else {
+        setError(result.error || 'Failed to update product');
+        return false;
+      }
+    } catch {
+      setError('Failed to update product');
+      return false;
+    }
+  };
+
+  const createProduct = async () => {
+    const newProduct = {
+      articleNo: '',
+      productName: '',
+      inPrice: 0,
+      price: 0,
+      unit: 'piece',
+      inStock: 0,
+      description: ''
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/products`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newProduct),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setProducts(prevProducts => [result.data, ...prevProducts]);
+        return result.data;
+      } else {
+        setError(result.error || 'Failed to create product');
+        return null;
+      }
+    } catch {
+      setError('Failed to create product');
+      return null;
+    }
+  };
+
+  // Cell editing handlers
+  const handleCellEdit = (productId, field, value) => {
+    setProducts(prevProducts => 
+      prevProducts.map(product => 
+        product.id === productId ? { ...product, [field]: value } : product
+      )
+    );
+  };
+
+  const handleCellSave = async (productId, field, value) => {
+    const success = await updateProduct(productId, field, value);
+    if (success) {
+      setEditingCell(null);
+    }
+  };
+
+  const handleCellClick = (productId, field) => {
+    setEditingCell(`${productId}-${field}`);
+  };
+
+  const handleKeyPress = (e, productId, field, value) => {
+    if (e.key === 'Enter') {
+      setEnterKeyPressed(true);
+      setTimeout(() => setEnterKeyPressed(false), 200);
+      handleCellSave(productId, field, value);
+    } else if (e.key === 'Escape') {
+      setEditingCell(null);
+      fetchProducts();
+    }
+  };
+
+  // Sorting logic
+  const sortedProducts = [...products].sort((a, b) => {
+    if (!sortField) return 0;
+    
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+    
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+    
+    aValue = String(aValue || '').toLowerCase();
+    bValue = String(bValue || '').toLowerCase();
+    
+    if (sortDirection === 'asc') {
+      return aValue.localeCompare(bValue);
+    } else {
+      return bValue.localeCompare(aValue);
+    }
+  });
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -20,8 +187,145 @@ function App() {
     return sortDirection === 'asc' ? 'sort-asc' : 'sort-desc';
   };
 
+  // UI handlers
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleSearch = useCallback(() => {
+    if (searchArticleNo || searchProductName) {
+      searchProducts();
+    } else {
+      fetchProducts();
+    }
+  }, [searchArticleNo, searchProductName, searchProducts, fetchProducts]);
+
+  const handleNewProduct = async () => {
+    const newProduct = await createProduct();
+    if (newProduct) {
+      setEditingCell(`${newProduct.id}-articleNo`);
+    }
+  };
+
+  // Effects
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Enter' && (e.target.placeholder === 'Search Article No...' || e.target.placeholder === 'Search Product...')) {
+        handleSearch();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchArticleNo, searchProductName, handleSearch]);
+
+  // Render functions
+  const renderEditableCell = (product, field, type = 'text') => {
+    const isEditing = editingCell === `${product.id}-${field}`;
+    const value = product[field];
+    
+    if (isEditing) {
+      const inputProps = {
+        type: type,
+        value: value,
+        onChange: (e) => handleCellEdit(product.id, field, type === 'number' ? parseFloat(e.target.value) : e.target.value),
+        onBlur: (e) => handleCellSave(product.id, field, type === 'number' ? parseFloat(e.target.value) : e.target.value),
+        onKeyPress: (e) => handleKeyPress(e, product.id, field, value),
+        autoFocus: true,
+        className: enterKeyPressed ? 'enter-feedback' : ''
+      };
+
+      return type === 'textarea' ? (
+        <textarea {...inputProps} />
+      ) : (
+        <input {...inputProps} />
+      );
+    }
+    
+    return (
+      <span onClick={() => handleCellClick(product.id, field)}>
+        {value}
+      </span>
+    );
+  };
+
+  const renderTableRow = (product, isDesktop = true) => {
+    if (isDesktop) {
+      return (
+        <div className="table-row desktop-table" key={`${product.id}-desktop`}>
+          <div className="table-cell">
+            <div className="cell-content">
+              {renderEditableCell(product, 'articleNo')}
+            </div>
+          </div>
+          <div className="table-cell">
+            <div className="cell-content">
+              {renderEditableCell(product, 'productName')}
+            </div>
+          </div>
+          <div className="table-cell">
+            <div className="cell-content">
+              {renderEditableCell(product, 'inPrice', 'number')}
+            </div>
+          </div>
+          <div className="table-cell">
+            <div className="cell-content">
+              {renderEditableCell(product, 'price', 'number')}
+            </div>
+          </div>
+          <div className="table-cell">
+            <div className="cell-content">
+              {renderEditableCell(product, 'unit')}
+            </div>
+          </div>
+          <div className="table-cell">
+            <div className="cell-content">
+              {renderEditableCell(product, 'inStock', 'number')}
+            </div>
+          </div>
+          <div className="table-cell">
+            <div className="cell-content">
+              {renderEditableCell(product, 'description', 'textarea')}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Tablet view
+    return (
+      <div className="table-row tablet-table" key={`${product.id}-tablet`}>
+        <div className="table-cell">
+          <div className="cell-content">
+            {renderEditableCell(product, 'articleNo')}
+          </div>
+        </div>
+        <div className="table-cell">
+          <div className="cell-content">
+            {renderEditableCell(product, 'productName')}
+          </div>
+        </div>
+        <div className="table-cell">
+          <div className="cell-content">
+            {renderEditableCell(product, 'price', 'number')}
+          </div>
+        </div>
+        <div className="table-cell">
+          <div className="cell-content">
+            {renderEditableCell(product, 'inStock', 'number')}
+          </div>
+        </div>
+        <div className="table-cell">
+          <div className="cell-content">
+            {renderEditableCell(product, 'unit')}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -204,7 +508,7 @@ function App() {
         <div className="search-actions">
           <div className="search-fields">
             <div className="search-input">
-              <input type="text" placeholder="Search Article No..." />
+              <input type="text" placeholder="Search Article No..." onChange={(e) => setSearchArticleNo(e.target.value)} />
               <span className="search-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8"/>
@@ -213,7 +517,7 @@ function App() {
               </span>
             </div>
             <div className="search-input">
-              <input type="text" placeholder="Search Product..." />
+              <input type="text" placeholder="Search Product..." onChange={(e) => setSearchProductName(e.target.value)} />
               <span className="search-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8"/>
@@ -224,7 +528,7 @@ function App() {
           </div>
           
           <div className="action-buttons">
-            <button className="action-btn new-product">
+            <button className="action-btn new-product" onClick={handleNewProduct}>
               <span className="icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19"/>
@@ -288,7 +592,7 @@ function App() {
             <div className="header-cell">Description</div>
           </div>
           
-          {/* Tablet/Mobile Table Structure */}
+          {/* Tablet Table Structure */}
           <div className="table-header tablet-table">
             <div 
               className={`header-cell sortable ${getSortClass('articleNo')}`}
@@ -380,77 +684,28 @@ function App() {
           </div>
           
           <div className="table-body">
-            {/* Desktop Table Row */}
-            <div className="table-row desktop-table">
-              <div className="table-cell">
-                <div className="cell-content">1234567890</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">This is a test product with fifty characters this!</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">900500</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">1500800</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">kilometers/hour</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">2500600</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">This is the description with fifty characters this... <span>⋯</span></div>
-              </div>
-            </div>
-            
-            {/* Tablet Table Row */}
-            <div className="table-row tablet-table">
-              <div className="table-cell">
-                <div className="cell-content">1234567890</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">This is a test product with fifty characters this!</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">1500800</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">2500600</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">kilometers/hour</div>
-              </div>
-              <div className="table-cell actions">
-                <div className="cell-content">
-                  <div className="three-dots">
-                    <span className="dot"></span>
-                    <span className="dot"></span>
-                    <span className="dot"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {loading && <p>Loading products...</p>}
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+                         {!loading && !error && sortedProducts.map((product) => (
+               <React.Fragment key={product.id}>
+                {renderTableRow(product, true)}  {/* Desktop */}
+                {renderTableRow(product, false)} {/* Tablet */}
 
-            {/* Mobile Table Row */}
-            <div className="table-row mobile-table">
-              <div className="table-cell">
-                <div className="cell-content">This is a test product with fifty characters this!</div>
-              </div>
-              <div className="table-cell">
-                <div className="cell-content">1500800</div>
-              </div>
-              <div className="table-cell actions">
-                <div className="cell-content">
-                  <div className="three-dots">
-                    <span className="dot"></span>
-                    <span className="dot"></span>
-                    <span className="dot"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                 {/* Mobile Table Row */}
+                 <div className="table-row mobile-table">
+                   <div className="table-cell">
+                     <div className="cell-content">
+                      {renderEditableCell(product, 'productName')}
+                     </div>
+                   </div>
+                   <div className="table-cell">
+                     <div className="cell-content">
+                      {renderEditableCell(product, 'price', 'number')}
+                     </div>
+                   </div>
+                 </div>
+               </React.Fragment>
+             ))}
           </div>
         </div>
       </div>
