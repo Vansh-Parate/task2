@@ -2,13 +2,45 @@ import Product from '../models/Product.js';
 import { Op } from 'sequelize';
 
 export default async function productRoutes(fastify) {
-  // Get all products
+  // Get all products with metadata and search
   fastify.get('/api/products', async (request, reply) => {
     try {
+      const { search, limit = 10, page = 1 } = request.query;
+      const offset = (page - 1) * limit;
+      
+      // Build where clause for search
+      const whereClause = {};
+      if (search) {
+        whereClause[Op.or] = [
+          { articleNo: { [Op.iLike]: `%${search}%` } },
+          { productName: { [Op.iLike]: `%${search}%` } }
+        ];
+      }
+      
+      // Get products with pagination
       const products = await Product.findAll({
-        order: [['createdAt', 'DESC']]
+        where: whereClause,
+        order: [['createdAt', 'DESC']],
+        limit: parseInt(limit),
+        offset: offset
       });
-      return { success: true, data: products };
+      
+      // Get total count for metadata
+      const totalCount = await Product.count({ where: whereClause });
+      const totalPages = Math.ceil(totalCount / limit);
+      
+      return { 
+        success: true, 
+        data: products,
+        metadata: {
+          total: totalCount,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1
+        }
+      };
     } catch {
       reply.code(500);
       return { success: false, error: 'Failed to fetch products' };
@@ -113,6 +145,21 @@ export default async function productRoutes(fastify) {
     } catch {
       reply.code(500);
       return { success: false, error: 'Failed to delete product' };
+    }
+  });
+
+  // Get products count (lightweight endpoint for cronjobs)
+  fastify.get('/api/products/count', async (request, reply) => {
+    try {
+      const count = await Product.count();
+      return { 
+        success: true, 
+        count: count,
+        timestamp: new Date().toISOString()
+      };
+    } catch {
+      reply.code(500);
+      return { success: false, error: 'Failed to get products count' };
     }
   });
 

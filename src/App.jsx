@@ -35,14 +35,17 @@ function App() {
     }
   }, [API_BASE_URL]);
 
-  const searchProducts = useCallback(async () => {
+  const searchProducts = useCallback(async (searchTerm) => {
     try {
       setLoading(true);
-      const params = new URLSearchParams();
-      if (searchArticleNo) params.append('articleNo', searchArticleNo);
-      if (searchProductName) params.append('productName', searchProductName);
       
-      const response = await fetch(`${API_BASE_URL}/products/search?${params}`);
+      if (!searchTerm) {
+        // If no search term, fetch all products
+        await fetchProducts();
+        return;
+      }
+      
+      const response = await fetch(`${API_BASE_URL}/products?search=${encodeURIComponent(searchTerm)}`);
       const result = await response.json();
       
       if (result.success) {
@@ -55,7 +58,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL, searchArticleNo, searchProductName]);
+  }, [API_BASE_URL, fetchProducts]);
 
   const updateProduct = async (id, field, value) => {
     try {
@@ -192,13 +195,9 @@ function App() {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const handleSearch = useCallback(() => {
-    if (searchArticleNo || searchProductName) {
-      searchProducts();
-    } else {
-      fetchProducts();
-    }
-  }, [searchArticleNo, searchProductName, searchProducts, fetchProducts]);
+  const handleSearch = useCallback((searchTerm) => {
+    searchProducts(searchTerm);
+  }, [searchProducts]);
 
   const handleNewProduct = async () => {
     const newProduct = await createProduct();
@@ -508,21 +507,63 @@ function App() {
         <div className="search-actions">
           <div className="search-fields">
             <div className="search-input">
-              <input type="text" placeholder="Search Article No..." onChange={(e) => setSearchArticleNo(e.target.value)} />
-              <span className="search-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="m21 21-4.35-4.35"/>
-                </svg>
+              <input 
+                type="text" 
+                placeholder="Search Article No..." 
+                value={searchArticleNo}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSearchArticleNo(value);
+                  setSearchProductName(''); // Clear other search field
+                  handleSearch(value);
+                }}
+                style={{ color: '#000000' }}
+              />
+              <span className="search-icon" onClick={() => {
+                setSearchArticleNo('');
+                handleSearch('');
+              }}>
+                {searchArticleNo ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                  </svg>
+                )}
               </span>
             </div>
             <div className="search-input">
-              <input type="text" placeholder="Search Product..." onChange={(e) => setSearchProductName(e.target.value)} />
-              <span className="search-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="m21 21-4.35-4.35"/>
-                </svg>
+              <input 
+                type="text" 
+                placeholder="Search Product..." 
+                value={searchProductName}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSearchProductName(value);
+                  setSearchArticleNo(''); // Clear other search field
+                  handleSearch(value);
+                }}
+                style={{ color: '#000000' }}
+              />
+              <span className="search-icon" onClick={() => {
+                setSearchProductName('');
+                handleSearch('');
+              }}>
+                {searchProductName ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                  </svg>
+                )}
               </span>
             </div>
           </div>
@@ -558,6 +599,8 @@ function App() {
             </button>
           </div>
         </div>
+
+
 
         {/* Products Table */}
         <div className="products-table">

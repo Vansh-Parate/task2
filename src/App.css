@@ -267,6 +267,7 @@ body {
   font-size: 0.9rem;
   background-color: #f9fafb;
   transition: border-color 0.2s, box-shadow 0.2s;
+  color: #000000;
 }
 
 .search-input input:focus {
@@ -283,6 +284,12 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.search-icon:hover {
+  color: #374151;
 }
 
 .action-buttons {
@@ -312,13 +319,31 @@ body {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.action-btn.new-product {
+.action-btn.search-btn {
   background-color: #10b981;
   color: white;
 }
 
-.action-btn.new-product:hover {
+.action-btn.search-btn:hover {
   background-color: #059669;
+}
+
+.action-btn.clear-btn {
+  background-color: #ef4444;
+  color: white;
+}
+
+.action-btn.clear-btn:hover {
+  background-color: #dc2626;
+}
+
+.action-btn.new-product {
+  background-color: #2563eb;
+  color: white;
+}
+
+.action-btn.new-product:hover {
+  background-color: #1d4ed8;
 }
 
 .action-btn.print-list {
@@ -365,6 +390,8 @@ body {
 .search-btn:hover {
   background-color: #1d4ed8;
 }
+
+
 
 /* Products Table */
 .products-table {
