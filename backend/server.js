@@ -13,13 +13,10 @@ const fastify = Fastify({
 
 // Configure CORS
 await fastify.register(cors, {
-  origin: [
-    'https://task2-two-lovat.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ],
+  origin: true, // Allow all origins for now
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 });
 
 // Register API routes
